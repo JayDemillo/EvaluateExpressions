@@ -74,15 +74,19 @@ public class EvaluateExpressions_TwoStacks {
 			else 
 			{		
 				System.out.println("Operation:" + sub);
-				operatorStack.push(sub);
+				
+				//!!!!!!****
 				repeatOperations(sub);
+				operatorStack.push(sub);
+				
 				previousIsOp = true;
 			}
 		}
-		if ($lowestPrecedence == "")
+		if ($lowestPrecedence.equals("") && !valueStack.empty())
 			repeatOperations(operatorStack.peek());
-		else 
+		else if (!$lowestPrecedence.equals(""))
 			repeatOperations($lowestPrecedence); 
+
 
 		return valueStack.peek();
 
@@ -99,16 +103,18 @@ public class EvaluateExpressions_TwoStacks {
 				operatorStack.pop(); //To remove closing operator out of the stack
 				while (!operatorStack.peek().equals("(")) 
 				{
-					//operatorStack.pop(); 
 					doOperation();
 				}
+				operatorStack.pop(); //To remove the opening bracket operator from the stack
 			}
 			else 
 			{
-				$lowestPrecedence = operator;
+				if (convertToPrecedenceValue(operator) > convertToPrecedenceValue((String)operatorStack.peek()))
+				{
+					$lowestPrecedence = operator;
+				}
 				doOperation();
 			}
-
 		}
 	}
 
@@ -152,7 +158,6 @@ public class EvaluateExpressions_TwoStacks {
 
 			}
 		}
-
 	}
 
 	public static boolean isNumber(String sub)  
