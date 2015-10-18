@@ -27,14 +27,9 @@ public class EvaluateExpressions_TwoStacks {
 
 		//imports a text file containing expressions in each line
 		ArrayList<String> arithmeticEquation = new ArrayList<String>();
-		/*	arithmeticEquation = importFile(arithmeticEquation);
+		arithmeticEquation = importFile(arithmeticEquation);
 		arithmeticEquation.trimToSize();
-		 */
 
-		//CHECK FOR -(4+5) where unary - before (
-		//makes sure that the iterator works
-		arithmeticEquation.add("(7 + 3 * 3)");
-		//arithmeticEquation.add("");
 		for (String s: arithmeticEquation)
 		{
 			System.out.println(s);
@@ -74,18 +69,19 @@ public class EvaluateExpressions_TwoStacks {
 			else 
 			{		
 				System.out.println("Operation:" + sub);
-				
-				//!!!!!!****
+
 				repeatOperations(sub);
 				operatorStack.push(sub);
-				
+
 				previousIsOp = true;
 			}
 		}
 		if ($lowestPrecedence.equals("") && !valueStack.empty())
 			repeatOperations(operatorStack.peek());
-		else if (!$lowestPrecedence.equals(""))
+		if (!$lowestPrecedence.equals(""))
 			repeatOperations($lowestPrecedence); 
+		/*		if (!$lowestPrecedence.equals(""))
+			repeatOperations(operatorStack.peek()); */
 
 
 		return valueStack.peek();
@@ -94,10 +90,8 @@ public class EvaluateExpressions_TwoStacks {
 
 	public static void repeatOperations(String operator)
 	{
-
 		while (valueStack.size() > 1 && (convertToPrecedenceValue(operator) >= convertToPrecedenceValue((String)operatorStack.peek())))
 		{
-
 			if (operator.equals(")"))
 			{
 				operatorStack.pop(); //To remove closing operator out of the stack
@@ -107,12 +101,10 @@ public class EvaluateExpressions_TwoStacks {
 				}
 				operatorStack.pop(); //To remove the opening bracket operator from the stack
 			}
-			else 
+
+			else
 			{
-				if (convertToPrecedenceValue(operator) > convertToPrecedenceValue((String)operatorStack.peek()))
-				{
-					$lowestPrecedence = operator;
-				}
+				$lowestPrecedence = operator;
 				doOperation();
 			}
 		}
@@ -241,12 +233,10 @@ public class EvaluateExpressions_TwoStacks {
 	 */
 	public static ArrayList<String> importFile(ArrayList<String> arithmeticEquation)
 	{
-		Scanner fileIn = new Scanner(System.in);
 		File inputFile; 
 		try {
 
-			System.out.print("Enter file name with extention: ");
-			inputFile = new File(fileIn.nextLine());
+			inputFile = new File("expressions.txt");
 
 			Scanner fileInput = new Scanner(inputFile);
 			while (fileInput.hasNextLine())
