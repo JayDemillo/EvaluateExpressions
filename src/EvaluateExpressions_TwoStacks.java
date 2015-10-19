@@ -7,7 +7,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class EvaluateExpressions_TwoStacks {
-	private final static int PRECEDENCE_PARENTHESIS = 1;
+	private final static boolean verbose = false;
+	private final static int PRECEDENCE_PARENTHESIS = 9;
 	private final static int PRECEDENCE_FACTORIAL = 2;
 	private final static int PRECEDENCE_POWER = 3;
 	private final static int PRECEDENCE_MULTDIV = 4;
@@ -17,7 +18,6 @@ public class EvaluateExpressions_TwoStacks {
 
 	private static Stack<String> valueStack = new Stack<String>();
 	private static Stack<String> operatorStack = new Stack<String>();
-	private static String $lowestPrecedence = "";
 
 	public static void main(String[] args) {
 
@@ -32,7 +32,8 @@ public class EvaluateExpressions_TwoStacks {
 
 		for (String s: arithmeticEquation)
 		{
-			System.out.println(s);
+			if (verbose)
+				System.out.println(s);
 			String answer = evalExpression(s);
 			System.out.println(answer);
 		}
@@ -53,36 +54,38 @@ public class EvaluateExpressions_TwoStacks {
 		}
 		ops.trimToSize();
 
-		boolean previousIsOp = false;
-
-		//checks for factorial value and computes it HAVE TO DO BRACKETS FIRST
+		//checks for factorial value and computes it 
 		for(String sub: ops)
 		{
-			System.out.println(valueStack);
-			System.out.println(operatorStack);
+			if (verbose)
+			{
+				System.out.println(valueStack);
+				System.out.println(operatorStack);
+			}
 			if (isNumber(sub))
 			{
-				System.out.println("Number:" + sub);
+				if (verbose)
+					System.out.println("Number:" + sub);
 				valueStack.push(Double.toString(Double.parseDouble(sub)));
-				previousIsOp = false;
 			}
 			else 
 			{		
-				System.out.println("Operation:" + sub);
+				if (verbose)
+					System.out.println("Operation:" + sub);
 
 				repeatOperations(sub);
-				operatorStack.push(sub);
-
-				previousIsOp = true;
+				if (!sub.equals(")")) 
+					operatorStack.push(sub);
 			}
 		}
-		if ($lowestPrecedence.equals("") && !valueStack.empty())
-			repeatOperations(operatorStack.peek());
-		if (!$lowestPrecedence.equals(""))
-			repeatOperations($lowestPrecedence); 
-		/*		if (!$lowestPrecedence.equals(""))
-			repeatOperations(operatorStack.peek()); */
+		if (verbose)
+		{
+			System.out.println("Top of the number stack is " + valueStack.peek());
+			System.out.println("Size of valueStack is: " + valueStack.size());
+			System.out.println(valueStack);
+		}
 
+		repeatOperations("$");
 
 		return valueStack.peek();
 
@@ -90,21 +93,48 @@ public class EvaluateExpressions_TwoStacks {
 
 	public static void repeatOperations(String operator)
 	{
-		while (valueStack.size() > 1 && (convertToPrecedenceValue(operator) >= convertToPrecedenceValue((String)operatorStack.peek())))
+		if (verbose)
 		{
+			System.out.println();
+			System.out.println();
+			System.out.println("repeatOperations argument operator = " + operator); 
+			System.out.println("!valueStack.empty() = " + !valueStack.empty() 
+					+ " - !operatorStack.empty() = " + !operatorStack.empty() );	
+			if (!operatorStack.empty())
+				System.out.println("Operator at top of stack: " + operatorStack.peek() + " and has prec value of :" + convertToPrecedenceValue((String)operatorStack.peek()));
+			if (!operatorStack.empty())
+				System.out.println("Operator being checked: " + operator + " and has prec value of :" + convertToPrecedenceValue(operator));
+
+			if (!valueStack.empty() && !operatorStack.empty())
+				System.out.println( " - convertToPrecedenceValue(operator) >= convertToPrecedenceValue((String)operatorStack.peek()) = " + (convertToPrecedenceValue(operator) >= convertToPrecedenceValue((String)operatorStack.peek())));
+
+			System.out.println();
+			System.out.println();
+		}
+		while (!valueStack.empty() && !operatorStack.empty() 
+				&& (convertToPrecedenceValue(operator) >= convertToPrecedenceValue((String)operatorStack.peek()))) 
+		{
+			if (verbose)
+				System.out.println("Entered repeatOperations while loop with operator : " + operator); 
 			if (operator.equals(")"))
 			{
-				operatorStack.pop(); //To remove closing operator out of the stack
+				if (verbose)
+					System.out.println("closing parentheses loop"); 
 				while (!operatorStack.peek().equals("(")) 
 				{
+					if (verbose)
+						System.out.println(operatorStack);
 					doOperation();
 				}
+
 				operatorStack.pop(); //To remove the opening bracket operator from the stack
+				break; 
+			} else if (operator.equals("(")) {
+				break; 
 			}
 
 			else
 			{
-				$lowestPrecedence = operator;
 				doOperation();
 			}
 		}
@@ -117,7 +147,8 @@ public class EvaluateExpressions_TwoStacks {
 	public static void doOperation()
 	{
 		String operator = operatorStack.pop();
-
+		if (verbose)
+			System.out.println("Performing operation with operator: " + operator); 
 		//unary operation (- should be handled during parsing)
 		if (operator.equals("!"))
 		{
@@ -147,7 +178,6 @@ public class EvaluateExpressions_TwoStacks {
 			case "!=": valueStack.push((y != x) + ""); break;
 			default:
 				throw new IllegalArgumentException("Unrecognized operator: " + operator);
-
 			}
 		}
 	}
@@ -170,21 +200,22 @@ public class EvaluateExpressions_TwoStacks {
 
 		switch (operator)
 		{
-		case "(": 
-		case ")": return PRECEDENCE_PARENTHESIS;
+		case "(": return PRECEDENCE_PARENTHESIS; 
+		case ")": return PRECEDENCE_PARENTHESIS; 
 		case "!": return PRECEDENCE_FACTORIAL;
 		case "^": return PRECEDENCE_POWER;
-		case "*":
-		case "x":
+		case "*":return PRECEDENCE_MULTDIV;
+		case "x":return PRECEDENCE_MULTDIV;
 		case "/": return PRECEDENCE_MULTDIV;
-		case "+":
+		case "+":return PRECEDENCE_ADDSUB;
 		case "-": return PRECEDENCE_ADDSUB; 
-		case ">":
-		case "<":
-		case ">=":
+		case ">":return PRECEDENCE_GREATERLESSER;
+		case "<":return PRECEDENCE_GREATERLESSER;
+		case ">=":return PRECEDENCE_GREATERLESSER;
 		case "<=": return PRECEDENCE_GREATERLESSER;
-		case "==":
+		case "==":return PRECEDENCE_EQUALITY;
 		case "!=": return PRECEDENCE_EQUALITY;
+		case "$": return 20; 
 		default:
 			throw new IllegalArgumentException("Unrecognized operator: " + operator);
 		}
@@ -211,16 +242,39 @@ public class EvaluateExpressions_TwoStacks {
 
 	}
 
-	public static int factorial(int f)
+	/*	public static double factorial(int f)
 	{
-		int counter = f;
-		int sum = f;
 
-		while(counter>0)
+	}*/
+
+	/**
+	 * 
+	 * @param n
+	 * @return
+	 */
+	public static double factorial(int f) {
+
+		double fact = f;
+
+		if (f<=10)
 		{
-			sum += sum*--counter;
+			for (int i = 1; i < f ; ++i)
+			{
+				fact = fact*i;
+			}
+			return fact;
 		}
-		return sum;
+
+		return (2.506628274631*Math.pow((float)f,(float)f+0.5)*Math.exp(-(double)f));
+
+		/*f = 1.0;
+        if(n <= 10) 
+        {
+            // calculate the actual factorial
+            for(j = 1; j <= n; j++) f*=j;
+            return f;
+        }*/
+
 	}
 
 	/**
